@@ -3,28 +3,25 @@ const { Op } = require("sequelize");
 const { Posts } = require("../models");
 const router = express.Router();
 const authMiddleware = require("../middlewares/auth-middleware");
+const validation = require("../middlewares/validation")
+const { check, body } = require("express-validator");
 const posts = require("../models/posts");
 
 // 게시글 작성
-router.post("/", authMiddleware, async (req, res) => {
-  const { title, content } = req.body;
-  const { nickname, userId } = res.locals.user;
-  if (Object.keys(req.body).length === 0) {
-    return res
-      .status(412)
-      .json({ message: "데이터 형식이 올바르지 않습니다." });
-  }
-  if (title === "" || title === undefined) {
-    return res
-      .status(412)
-      .json({ errorMessage: "게시글 제목의 형식이 일치하지 않습니다." });
-  }
-  if (content === "" || content === undefined) {
-    return res
-      .status(412)
-      .json({ errorMessage: "게시글 내용의 형식이 일치하지 않습니다." });
-  }
-
+router.post("/", authMiddleware,
+  [ // validation 체크
+    body("title").custom((value, { req }) => {
+        if (!value && !req.body.content)
+            throw new Error('데이터 형식이 올바르지 않습니다.');
+        return true;
+    }),
+    check("title").not().isEmpty().withMessage("게시글 제목의 형식이 일치하지 않습니다."),
+    check("content").not().isEmpty().withMessage("게시글 내용의 형식이 일치하지 않습니다."),
+    validation,
+  ],
+  async (req, res) => {
+    const { title, content } = req.body;
+    const { nickname, userId } = res.locals.user;
   try {
     const post = await Posts.create({ userId, nickname, title, content });
 
@@ -71,30 +68,23 @@ router.get("/:postId", async (req, res) => {
 
 
 // 게시글 수정
-router.put("/:postId", authMiddleware, async (req, res) => {
+router.put("/:postId", authMiddleware,
+  [ // validation 체크
+    body("title").custom((value, { req }) => {
+        if (!value && !req.body.content)
+            throw new Error('데이터 형식이 올바르지 않습니다.');
+        return true;
+    }),
+    check("title").not().isEmpty().withMessage("게시글 제목의 형식이 일치하지 않습니다."),
+    check("content").not().isEmpty().withMessage("게시글 내용의 형식이 일치하지 않습니다."),
+    validation,
+  ],
+  async (req, res) => {
   const { postId } = req.params;
   const { title, content } = req.body;
   const { nickname, userId } = res.locals.user;
 
   try {
-    if (
-      Object.keys(req.body).length === 0 ||
-      Object.values(req.params).length === 0
-    ) {
-      return res
-        .status(412)
-        .json({ message: "데이터 형식이 올바르지 않습니다." });
-    }
-    if (title === "" || title === undefined) {
-      return res
-        .status(412)
-        .json({ errorMessage: "게시글 제목의 형식이 일치하지 않습니다." });
-    }
-    if (content === "" || content === undefined) {
-      return res
-        .status(412)
-        .json({ errorMessage: "게시글 내용의 형식이 일치하지 않습니다." });
-    }
     const post = await Posts.findOne({
       where: {postId: postId}
     });

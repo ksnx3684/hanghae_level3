@@ -20,15 +20,15 @@ router.post("/", authMiddleware,
     validation,
   ],
   async (req, res) => {
+  try {
     const { title, content } = req.body;
     const { nickname, userId } = res.locals.user;
-  try {
-    const post = await Posts.create({ userId, nickname, title, content });
+    await Posts.create({ userId, nickname, title, content });
 
-    res.status(201).json({ message: "게시글 작성에 성공하였습니다." });
+    return res.status(201).json({ message: "게시글 작성에 성공하였습니다." });
   } catch (err) {
     console.log(err.message);
-    res.status(400).json({ errorMessage: "게시글 작성에 실패하였습니다." });
+    return res.status(400).json({ errorMessage: "게시글 작성에 실패하였습니다." });
   }
 });
 
@@ -41,10 +41,10 @@ router.get("/", async (req, res) => {
       order: [['createdAt', 'desc']]
     });
     
-    res.status(200).json({posts: posts});
+    return res.status(200).json({posts: posts});
   } catch (err) {
     console.log(err.message);
-    res.status(400).json({ errorMessage: "게시글 조회에 실패하였습니다." });
+    return res.status(400).json({ errorMessage: "게시글 조회에 실패하였습니다." });
   }
 });
 
@@ -55,14 +55,14 @@ router.get("/:postId", async (req, res) => {
 
   try {
     const post = await Posts.findOne({
-      where: {postId: postId},
+      where: { postId: postId },
       attributes: ['postId', 'userId', 'nickname', 'title', 'content', 'createdAt', 'updatedAt']
     });
     
-    res.status(200).json({post: post});
+    return res.status(200).json({ post: post });
   } catch (err) {
     console.log(err.message);
-    res.status(400).json({ errorMessage: "게시글 조회에 실패하였습니다." });
+    return res.status(400).json({ errorMessage: "게시글 조회에 실패하였습니다." });
   }
 });
 
@@ -80,32 +80,28 @@ router.put("/:postId", authMiddleware,
     validation,
   ],
   async (req, res) => {
-  const { postId } = req.params;
-  const { title, content } = req.body;
-  const { nickname, userId } = res.locals.user;
-
   try {
+    const { postId } = req.params;
+    const { title, content } = req.body;
+    const { nickname, userId } = res.locals.user;
+
     const post = await Posts.findOne({
-      where: {postId: postId}
+      where: { postId: postId } 
     });
-    if (post.nickname !== nickname) {
-      return res
-        .status(403)
-        .json({ errorMessage: "게시글 수정의 권한이 존재하지 않습니다." });
-    }
+    if (post.nickname !== nickname)
+      return res.status(403).json({ errorMessage: "게시글 수정의 권한이 존재하지 않습니다." });
 
     await Posts.update(
       { title, content },
-      { where: {postId: postId} }
+      { where: { postId: postId } }
     ).catch((err) => {
-      res
-        .status(401)
-        .json({ errorMessage: "게시글이 정상적으로 수정되지 않았습니다." });
+      return res.status(401).json({ errorMessage: "게시글이 정상적으로 수정되지 않았습니다." });
     });
-    res.status(200).json({ message: "게시글을 수정하였습니다." });
+
+    return res.status(200).json({ message: "게시글을 수정하였습니다." });
   } catch (err) {
     console.log(err);
-    res.status(400).json({ errorMessage: "게시글 수정에 실패하였습니다." });
+    return res.status(400).json({ errorMessage: "게시글 수정에 실패하였습니다." });
   }
 });
 
@@ -115,30 +111,25 @@ router.delete("/:postId", authMiddleware, async (req, res) => {
   const { postId } = req.params;
   const { nickname } = res.locals.user;
   try {
-    const post = await Posts.findOne({where: {postId: postId}});
+    const post = await Posts.findOne({
+      where: { postId: postId }
+    });
     if (!post)
-      return res
-        .status(403)
-        .json({ errorMessage: "게시글이 존재하지 않습니다." });
+      return res.status(403).json({ errorMessage: "게시글이 존재하지 않습니다." });
 
-    if (!nickname || post.nickname !== nickname) {
-      return res
-        .status(403)
-        .json({ errorMessage: "게시글 수정의 권한이 존재하지 않습니다." });
-    }
+    if (!nickname || post.nickname !== nickname)
+      return res.status(403).json({ errorMessage: "게시글 수정의 권한이 존재하지 않습니다." });
+
     await Posts.destroy({
       where: {
-        [Op.and]: [{postId}, {nickname}]
+        [Op.and]: [{ postId }, { nickname }]
       }
-    }).catch((err) =>
-      res
-        .status(401)
-        .json({ errorMessage: "게시글이 정상적으로 삭제되지 않았습니다." })
-    );
+    }).catch((err) => res.status(401).json({ errorMessage: "게시글이 정상적으로 삭제되지 않았습니다." }));
+
     return res.status(200).json({ message: "게시글을 삭제하였습니다." });
-  } catch (error) {
-    console.log(error.message);
-    res.status(400).json({ errorMessage: "게시글 삭제에 실패하였습니다." });
+  } catch (err) {
+    console.log(err.message);
+    return res.status(400).json({ errorMessage: "게시글 삭제에 실패하였습니다." });
   }
 });
 

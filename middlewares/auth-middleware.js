@@ -24,7 +24,7 @@ module.exports = async (req, res, next) => {
 
     // 3. authToken에 있는 userId에 해당하는 사용자가 실제 DB에 존재하는 지 확인
     const user = await Users.findOne({
-      where: {nickname: nickname}
+      where: { nickname: nickname }
     });
     res.locals.user = user;
     next(); // 이 미들웨어 다음으로 보낸다.

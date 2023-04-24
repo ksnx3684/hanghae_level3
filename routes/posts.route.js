@@ -3,9 +3,9 @@ const { Op } = require("sequelize");
 const { Posts } = require("../models");
 const router = express.Router();
 const authMiddleware = require("../middlewares/auth-middleware");
-const validation = require("../middlewares/validation")
+const validation = require("../middlewares/validation");
 const { check, body } = require("express-validator");
-const posts = require("../models/posts");
+
 
 // 게시글 작성
 router.post("/", authMiddleware,

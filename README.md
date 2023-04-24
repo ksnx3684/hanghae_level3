@@ -1,6 +1,9 @@
 # hanghae_level3
 항해99 Node.js Level3
 
+## ERD
+https://drawsql.app/teams/ksnx3684s-team/diagrams/hanghae-level3
+
 ---
 
 ### 1. mongoose에서 sequelize로 변경했을 때, 많은 코드 변경이 있었나요? 있었다면 어떤 코드에서 변경사항이 많았나요?
